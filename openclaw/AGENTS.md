@@ -44,11 +44,11 @@ Each agent maintains:
 - **Isolated sessions** — Chat history at `~/.openclaw/agents/<id>/sessions`
 - **Scoped tools** — Only the tools each agent needs (least privilege)
 
-## Telegram Thread Routing
+## Telegram Forum Topic Routing
 
-Set up a Telegram group with **topics enabled**, then create 7 threads:
+Each agent is bound to a **Telegram forum topic** (thread) in a single supergroup. OpenClaw's native `groups.topics` config maps topic IDs directly to agents — each topic gets its own session key (`:topic:<threadId>`) for full memory isolation.
 
-| Thread | Agent | Purpose |
+| Topic | Agent | Purpose |
 |---|---|---|
 | Director | `director` | Creative interviews, project kickoff |
 | Promptsmith | `promptsmith` | Prompt review, compilation, anti-slop |
@@ -58,18 +58,34 @@ Set up a Telegram group with **topics enabled**, then create 7 threads:
 | Sound Designer | `sound-designer` | Audio design, lip-sync config |
 | Producer | `producer` | API jobs, status, pipeline |
 
-**Routing rules** (in priority order):
-1. Message in a named thread → routes to the matching agent
-2. Unthreaded message → routes to Director (default)
-3. Director can delegate by mentioning `@agentname` in the pipeline
+**Routing rules** (OpenClaw priority):
+1. Message in a forum topic → routes to the agent bound to that topic ID
+2. Topic entries inherit group settings unless overridden (`requireMention`, `allowFrom`, `skills`)
+3. DMs and unthreaded messages → fallback to Director (default agent)
+4. Session keys are topic-scoped: `session:topic:5` ≠ `session:topic:7`
 
 ### Setup
 
-1. Create a Telegram bot via `@BotFather`
-2. Create a group, enable topics, add the bot as admin
-3. Create 7 topic threads (one per agent)
-4. Copy thread IDs to `.env` (see `.env.example`)
-5. Run `openclaw start` with the config
+1. Create a Telegram bot via `@BotFather` → get bot token
+2. Create a **supergroup**, enable **Topics** (forum mode), add bot as admin
+3. Create 7 topics (Director, Promptsmith, Cinematographer, Casting, Mistake, Sound, Producer)
+4. Get IDs: add `@getidsbot` → forward a message from each topic to get its thread ID
+5. Get group ID: the supergroup ID (format: `-100xxxxxxxxxx`)
+6. Fill in `.env` (see `.env.example`) with bot token, group ID, and topic IDs
+7. Run `openclaw start --config openclaw.json`
+
+### Memory Model
+
+Each agent maintains persistent memory across sessions:
+
+| Layer | Location | Lifetime | Loaded |
+|---|---|---|---|
+| Session context | In-memory transcript | Resets daily (4 AM) | Always |
+| Daily logs | `memory/YYYY-MM-DD.md` | Permanent | Today + yesterday |
+| Long-term | `MEMORY.md` | Permanent | DM/private sessions |
+| Semantic search | Vector index over memory files | Rebuilt on demand | On `memory_search` |
+
+Before context compaction, OpenClaw triggers a **pre-compaction flush** — the agent writes important info to `MEMORY.md` before the window is compressed.
 
 ## Pipeline Flow
 

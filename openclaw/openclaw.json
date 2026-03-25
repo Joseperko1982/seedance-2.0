@@ -99,91 +99,79 @@
 
   "channels": {
     "telegram": {
-      "accounts": {
-        "seedance-bot": {
-          "description": "Seedance 2.0 Filmmaking Bot — Telegram integration",
-          "botToken": "${TELEGRAM_BOT_TOKEN}"
+      "botToken": "${TELEGRAM_BOT_TOKEN}",
+      "replyToMode": "all",
+      "streaming": "partial",
+      "mediaMaxMb": 100,
+      "historyLimit": 50,
+
+      "groups": {
+        "${TELEGRAM_GROUP_ID}": {
+          "groupPolicy": "open",
+          "requireMention": false,
+
+          "topics": {
+            "${TELEGRAM_TOPIC_DIRECTOR}": {
+              "agentId": "director",
+              "systemPrompt": "You are the Director — creative lead of the Seedance 2.0 filmmaking team."
+            },
+            "${TELEGRAM_TOPIC_PROMPTSMITH}": {
+              "agentId": "promptsmith",
+              "systemPrompt": "You are the Promptsmith — prompt engineering specialist."
+            },
+            "${TELEGRAM_TOPIC_CINEMATOGRAPHER}": {
+              "agentId": "cinematographer",
+              "systemPrompt": "You are the Cinematographer — camera, lighting, and VFX specialist."
+            },
+            "${TELEGRAM_TOPIC_CASTING}": {
+              "agentId": "casting",
+              "systemPrompt": "You are the Casting Director — character design, style, and motion specialist."
+            },
+            "${TELEGRAM_TOPIC_MISTAKE}": {
+              "agentId": "mistake",
+              "systemPrompt": "You are the Mistake Agent — QA guardian and assets gallery manager."
+            },
+            "${TELEGRAM_TOPIC_SOUND}": {
+              "agentId": "sound-designer",
+              "systemPrompt": "You are the Sound Designer — audio, lip-sync, and SFX specialist."
+            },
+            "${TELEGRAM_TOPIC_PRODUCER}": {
+              "agentId": "producer",
+              "systemPrompt": "You are the Producer — API execution and pipeline manager."
+            }
+          }
         }
+      },
+
+      "execApprovals": {
+        "enabled": true,
+        "target": "channel"
       }
     }
   },
 
+  "memory": {
+    "enabled": true,
+    "dailyLogs": true,
+    "logDir": "memory",
+    "longTermFile": "MEMORY.md",
+    "searchEnabled": true,
+    "preCompactionFlush": true
+  },
+
   "bindings": [
     {
-      "description": "Telegram thread: Director — main conversation thread for creative interviews",
+      "description": "Fallback: DMs and unthreaded messages go to Director",
       "agentId": "director",
       "match": {
-        "channel": "telegram",
-        "accountId": "seedance-bot",
-        "peer": { "kind": "topic", "id": "${TELEGRAM_THREAD_DIRECTOR}" }
-      }
-    },
-    {
-      "description": "Telegram thread: Promptsmith — prompt engineering and compilation",
-      "agentId": "promptsmith",
-      "match": {
-        "channel": "telegram",
-        "accountId": "seedance-bot",
-        "peer": { "kind": "topic", "id": "${TELEGRAM_THREAD_PROMPTSMITH}" }
-      }
-    },
-    {
-      "description": "Telegram thread: Cinematographer — camera, lighting, VFX design",
-      "agentId": "cinematographer",
-      "match": {
-        "channel": "telegram",
-        "accountId": "seedance-bot",
-        "peer": { "kind": "topic", "id": "${TELEGRAM_THREAD_CINEMATOGRAPHER}" }
-      }
-    },
-    {
-      "description": "Telegram thread: Casting — characters, style, motion",
-      "agentId": "casting",
-      "match": {
-        "channel": "telegram",
-        "accountId": "seedance-bot",
-        "peer": { "kind": "topic", "id": "${TELEGRAM_THREAD_CASTING}" }
-      }
-    },
-    {
-      "description": "Telegram thread: Mistake — QA reviews and assets gallery",
-      "agentId": "mistake",
-      "match": {
-        "channel": "telegram",
-        "accountId": "seedance-bot",
-        "peer": { "kind": "topic", "id": "${TELEGRAM_THREAD_MISTAKE}" }
-      }
-    },
-    {
-      "description": "Telegram thread: Sound Designer — audio design and lip-sync",
-      "agentId": "sound-designer",
-      "match": {
-        "channel": "telegram",
-        "accountId": "seedance-bot",
-        "peer": { "kind": "topic", "id": "${TELEGRAM_THREAD_SOUND}" }
-      }
-    },
-    {
-      "description": "Telegram thread: Producer — API execution and pipeline",
-      "agentId": "producer",
-      "match": {
-        "channel": "telegram",
-        "accountId": "seedance-bot",
-        "peer": { "kind": "topic", "id": "${TELEGRAM_THREAD_PRODUCER}" }
-      }
-    },
-    {
-      "description": "Fallback: all other Telegram messages go to Director",
-      "agentId": "director",
-      "match": {
-        "channel": "telegram",
-        "accountId": "seedance-bot"
+        "channel": "telegram"
       }
     }
   ],
 
   "env": {
     "MUAPI_API_KEY": "${MUAPI_API_KEY}",
-    "TELEGRAM_BOT_TOKEN": "${TELEGRAM_BOT_TOKEN}"
+    "TELEGRAM_BOT_TOKEN": "${TELEGRAM_BOT_TOKEN}",
+    "TELEGRAM_GROUP_ID": "${TELEGRAM_GROUP_ID}"
   }
 }
