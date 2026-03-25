@@ -1,0 +1,189 @@
+{
+  "$schema": "https://docs.openclaw.ai/schema/openclaw.json",
+  "version": "1.0.0",
+  "description": "Seedance 2.0 Multi-Agent Filmmaking Team — OpenClaw Configuration",
+
+  "agents": {
+    "list": [
+      {
+        "id": "director",
+        "default": true,
+        "name": "Director",
+        "description": "Creative lead & orchestrator. Conducts interviews, selects recipes, delegates to specialists.",
+        "workspace": "~/.openclaw/workspace-seedance/director",
+        "agentDir": "~/.openclaw/agents/director/agent",
+        "model": "claude-opus-4-6",
+        "tools": {
+          "allow": ["read", "write", "glob", "grep", "exec"],
+          "deny": []
+        },
+        "sandbox": {
+          "mode": "permissive",
+          "scope": "agent"
+        }
+      },
+      {
+        "id": "promptsmith",
+        "name": "Promptsmith",
+        "description": "Prompt engineering specialist. Compiles Five-Layer Stack prompts, runs L7 concealment checks.",
+        "workspace": "~/.openclaw/workspace-seedance/promptsmith",
+        "agentDir": "~/.openclaw/agents/promptsmith/agent",
+        "model": "claude-sonnet-4-6",
+        "tools": {
+          "allow": ["read", "write", "glob", "grep"],
+          "deny": ["exec"]
+        }
+      },
+      {
+        "id": "cinematographer",
+        "name": "Cinematographer",
+        "description": "Camera, lighting, and VFX specialist. Designs shot framing, movements, and visual effects.",
+        "workspace": "~/.openclaw/workspace-seedance/cinematographer",
+        "agentDir": "~/.openclaw/agents/cinematographer/agent",
+        "model": "claude-sonnet-4-6",
+        "tools": {
+          "allow": ["read", "glob", "grep"],
+          "deny": ["write", "exec"]
+        }
+      },
+      {
+        "id": "casting",
+        "name": "Casting",
+        "description": "Character design, style direction, and motion choreography. Manages @Tag identity.",
+        "workspace": "~/.openclaw/workspace-seedance/casting",
+        "agentDir": "~/.openclaw/agents/casting/agent",
+        "model": "claude-sonnet-4-6",
+        "tools": {
+          "allow": ["read", "glob", "grep"],
+          "deny": ["write", "exec"]
+        }
+      },
+      {
+        "id": "mistake",
+        "name": "Mistake",
+        "description": "QA guardian & asset librarian. Enforces L11 Conservation Law, copyright compliance, manages assets gallery.",
+        "workspace": "~/.openclaw/workspace-seedance/mistake",
+        "agentDir": "~/.openclaw/agents/mistake/agent",
+        "model": "claude-sonnet-4-6",
+        "tools": {
+          "allow": ["read", "write", "glob", "grep", "exec"],
+          "deny": []
+        }
+      },
+      {
+        "id": "sound-designer",
+        "name": "Sound Designer",
+        "description": "Audio design specialist. Handles music, SFX, lip-sync, and audio constraint validation.",
+        "workspace": "~/.openclaw/workspace-seedance/sound-designer",
+        "agentDir": "~/.openclaw/agents/sound-designer/agent",
+        "model": "claude-sonnet-4-6",
+        "tools": {
+          "allow": ["read", "glob", "grep"],
+          "deny": ["write", "exec"]
+        }
+      },
+      {
+        "id": "producer",
+        "name": "Producer",
+        "description": "Execution & pipeline agent. Submits jobs to Seedance API, manages rendering queue.",
+        "workspace": "~/.openclaw/workspace-seedance/producer",
+        "agentDir": "~/.openclaw/agents/producer/agent",
+        "model": "claude-sonnet-4-6",
+        "tools": {
+          "allow": ["read", "write", "exec", "glob", "grep"],
+          "deny": []
+        }
+      }
+    ]
+  },
+
+  "channels": {
+    "telegram": {
+      "accounts": {
+        "seedance-bot": {
+          "description": "Seedance 2.0 Filmmaking Bot — Telegram integration",
+          "botToken": "${TELEGRAM_BOT_TOKEN}"
+        }
+      }
+    }
+  },
+
+  "bindings": [
+    {
+      "description": "Telegram thread: Director — main conversation thread for creative interviews",
+      "agentId": "director",
+      "match": {
+        "channel": "telegram",
+        "accountId": "seedance-bot",
+        "peer": { "kind": "topic", "id": "${TELEGRAM_THREAD_DIRECTOR}" }
+      }
+    },
+    {
+      "description": "Telegram thread: Promptsmith — prompt engineering and compilation",
+      "agentId": "promptsmith",
+      "match": {
+        "channel": "telegram",
+        "accountId": "seedance-bot",
+        "peer": { "kind": "topic", "id": "${TELEGRAM_THREAD_PROMPTSMITH}" }
+      }
+    },
+    {
+      "description": "Telegram thread: Cinematographer — camera, lighting, VFX design",
+      "agentId": "cinematographer",
+      "match": {
+        "channel": "telegram",
+        "accountId": "seedance-bot",
+        "peer": { "kind": "topic", "id": "${TELEGRAM_THREAD_CINEMATOGRAPHER}" }
+      }
+    },
+    {
+      "description": "Telegram thread: Casting — characters, style, motion",
+      "agentId": "casting",
+      "match": {
+        "channel": "telegram",
+        "accountId": "seedance-bot",
+        "peer": { "kind": "topic", "id": "${TELEGRAM_THREAD_CASTING}" }
+      }
+    },
+    {
+      "description": "Telegram thread: Mistake — QA reviews and assets gallery",
+      "agentId": "mistake",
+      "match": {
+        "channel": "telegram",
+        "accountId": "seedance-bot",
+        "peer": { "kind": "topic", "id": "${TELEGRAM_THREAD_MISTAKE}" }
+      }
+    },
+    {
+      "description": "Telegram thread: Sound Designer — audio design and lip-sync",
+      "agentId": "sound-designer",
+      "match": {
+        "channel": "telegram",
+        "accountId": "seedance-bot",
+        "peer": { "kind": "topic", "id": "${TELEGRAM_THREAD_SOUND}" }
+      }
+    },
+    {
+      "description": "Telegram thread: Producer — API execution and pipeline",
+      "agentId": "producer",
+      "match": {
+        "channel": "telegram",
+        "accountId": "seedance-bot",
+        "peer": { "kind": "topic", "id": "${TELEGRAM_THREAD_PRODUCER}" }
+      }
+    },
+    {
+      "description": "Fallback: all other Telegram messages go to Director",
+      "agentId": "director",
+      "match": {
+        "channel": "telegram",
+        "accountId": "seedance-bot"
+      }
+    }
+  ],
+
+  "env": {
+    "MUAPI_API_KEY": "${MUAPI_API_KEY}",
+    "TELEGRAM_BOT_TOKEN": "${TELEGRAM_BOT_TOKEN}"
+  }
+}

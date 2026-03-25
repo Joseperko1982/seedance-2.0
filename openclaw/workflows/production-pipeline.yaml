@@ -1,0 +1,147 @@
+# Seedance 2.0 — Lobster Production Pipeline
+#
+# Deterministic multi-agent workflow for full video production.
+# Triggered by the Director agent after completing the creative interview.
+#
+# Flow: Director → [Specialists in parallel] → Mistake (QA gate) → Producer
+#
+# Usage: lobster run production-pipeline.yaml
+
+name: seedance-production-pipeline
+version: "1.0.0"
+description: Full Seedance 2.0 video production pipeline with QA gate
+
+# Input from the Director agent
+input:
+  creative_brief:
+    type: string
+    description: "The Director's creative brief from the interview stage"
+  mode:
+    type: string
+    enum: [t2v, i2v, v2v, r2v]
+    description: "Generation mode"
+  workflow:
+    type: string
+    enum: [max-detail, max-performance]
+    default: max-detail
+    description: "Workflow type — long form or short form"
+  assets:
+    type: array
+    description: "Pre-registered asset URLs and @Tag assignments"
+    items:
+      type: object
+      properties:
+        url: { type: string }
+        atTag: { type: string }
+        type: { type: string, enum: [image, video, audio] }
+
+steps:
+  # Step 1: Parallel specialist phase
+  # All four specialists work concurrently on their domains
+  - name: specialist-phase
+    type: parallel
+    steps:
+      - name: prompt-compilation
+        agent: promptsmith
+        input:
+          brief: "{{ creative_brief }}"
+          mode: "{{ mode }}"
+          workflow: "{{ workflow }}"
+        instructions: |
+          Compile the creative brief into a Five-Layer Stack prompt.
+          If workflow is max-performance, use seedance-prompt-short (<2000 chars).
+          If workflow is max-detail, use seedance-prompt (full detail).
+          Output both English (review) and Chinese (generation) versions.
+          Run L7 Concealment Check and anti-slop filter.
+
+      - name: camera-design
+        agent: cinematographer
+        input:
+          brief: "{{ creative_brief }}"
+          mode: "{{ mode }}"
+        instructions: |
+          Design the camera plan: shot type, movement, lighting, VFX.
+          Consider the Conservation Law — balance detail vs motion.
+          Output a structured shot plan.
+
+      - name: character-design
+        agent: casting
+        input:
+          brief: "{{ creative_brief }}"
+          assets: "{{ assets }}"
+        instructions: |
+          Design characters, assign @Tags, define motion choreography.
+          Select 1-3 style tokens.
+          Validate all character descriptions against copyright rules.
+
+      - name: audio-design
+        agent: sound-designer
+        input:
+          brief: "{{ creative_brief }}"
+          mode: "{{ mode }}"
+        instructions: |
+          Design the soundscape: ambient, SFX, music.
+          If lip-sync needed, configure single-face audio setup.
+          Validate all audio constraints (MP3, ≤15s, ≤10MB).
+
+  # Step 2: Prompt assembly
+  # Promptsmith merges all specialist outputs into the final prompt
+  - name: prompt-assembly
+    agent: promptsmith
+    input:
+      prompt_draft: "{{ steps.specialist-phase.steps.prompt-compilation.output }}"
+      camera_plan: "{{ steps.specialist-phase.steps.camera-design.output }}"
+      character_sheet: "{{ steps.specialist-phase.steps.character-design.output }}"
+      audio_design: "{{ steps.specialist-phase.steps.audio-design.output }}"
+    instructions: |
+      Merge all specialist outputs into a single final prompt.
+      Apply the 6-Part Field Formula.
+      Ensure Chinese version is <2000 chars.
+      Front-load subject+action in first 20 tokens.
+
+  # Step 3: QA gate (mandatory)
+  # The Mistake agent reviews everything before generation
+  - name: qa-gate
+    agent: mistake
+    input:
+      final_prompt: "{{ steps.prompt-assembly.output }}"
+      assets: "{{ assets }}"
+      mode: "{{ mode }}"
+    instructions: |
+      Run the full QA Review Protocol:
+      1. Conservation Check (Detail × Motion)
+      2. Copyright Check (6 gates)
+      3. @Tag Validation (all assets in gallery?)
+      4. File Budget (≤12 total, videos ≤15s)
+      5. Prompt Length (<2000 chars Chinese)
+      6. Anti-Slop check
+      7. Single Action check
+      8. Front-Loading check
+
+      If any BLOCK issues found, return status: FAIL with fixes.
+      If PASS, approve for generation.
+    on_failure:
+      # If QA fails, loop back to prompt assembly with fixes
+      goto: prompt-assembly
+      max_retries: 2
+
+  # Step 4: Submit to API
+  # Producer sends the approved prompt to Seedance
+  - name: generation
+    agent: producer
+    input:
+      approved_prompt: "{{ steps.qa-gate.output }}"
+      mode: "{{ mode }}"
+      assets: "{{ assets }}"
+    instructions: |
+      Submit the QA-approved prompt to the Seedance API.
+      Select correct endpoint based on mode.
+      Poll for completion (5s interval, 600s timeout).
+      On success: register output in the assets gallery via @mistake.
+      On failure: report error and suggest fixes.
+
+output:
+  status: "{{ steps.generation.output.status }}"
+  video_url: "{{ steps.generation.output.video_url }}"
+  request_id: "{{ steps.generation.output.request_id }}"
+  qa_report: "{{ steps.qa-gate.output }}"

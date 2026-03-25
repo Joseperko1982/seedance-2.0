@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Seedance Assets Gallery",
+  "description": "Managed by the Mistake Agent. Tracks all reference assets (images, videos, audio) used across the Seedance 2.0 multi-agent production pipeline.",
+  "version": "1.0.0",
+  "limits": {
+    "maxTotalFiles": 12,
+    "maxImages": 9,
+    "maxImageSize": "30MB",
+    "maxVideos": 3,
+    "maxVideoDurationCombined": "15s",
+    "maxAudioClips": 3,
+    "maxAudioDuration": "15s",
+    "maxAudioFileSize": "10MB",
+    "supportedImageFormats": ["JPG", "PNG", "WEBP"],
+    "supportedVideoFormats": ["MP4"],
+    "supportedAudioFormats": ["MP3"]
+  },
+  "assets": [
+    {
+      "_comment": "Example entry — remove or replace with real assets",
+      "id": "asset-001",
+      "type": "image",
+      "filename": "example-hero-character.png",
+      "url": "",
+      "tags": ["character", "hero", "front-view", "example"],
+      "description": "Placeholder — front-facing hero character for @Image1 reference",
+      "usedIn": [],
+      "atTag": "@Image1",
+      "dimensions": "1920x1080",
+      "fileSize": "2.4MB",
+      "addedBy": "casting",
+      "addedAt": "2026-03-25T00:00:00Z",
+      "status": "archived"
+    }
+  ],
+  "sequences": [],
+  "stats": {
+    "totalImages": 0,
+    "totalVideos": 0,
+    "totalAudio": 0,
+    "totalFiles": 0,
+    "videoDurationUsed": "0s",
+    "audioDurationUsed": "0s"
+  }
+}
