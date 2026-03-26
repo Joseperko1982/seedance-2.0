@@ -1,0 +1,177 @@
+{
+  "$schema": "https://docs.openclaw.ai/schema/openclaw.json",
+  "version": "1.0.0",
+  "description": "Seedance 2.0 Multi-Agent Filmmaking Team — OpenClaw Configuration",
+
+  "agents": {
+    "list": [
+      {
+        "id": "director",
+        "default": true,
+        "name": "Director",
+        "description": "Creative lead & orchestrator. Conducts interviews, selects recipes, delegates to specialists.",
+        "workspace": "~/.openclaw/workspace-seedance/director",
+        "agentDir": "~/.openclaw/agents/director/agent",
+        "model": "claude-opus-4-6",
+        "tools": {
+          "allow": ["read", "write", "glob", "grep", "exec"],
+          "deny": []
+        },
+        "sandbox": {
+          "mode": "permissive",
+          "scope": "agent"
+        }
+      },
+      {
+        "id": "promptsmith",
+        "name": "Promptsmith",
+        "description": "Prompt engineering specialist. Compiles Five-Layer Stack prompts, runs L7 concealment checks.",
+        "workspace": "~/.openclaw/workspace-seedance/promptsmith",
+        "agentDir": "~/.openclaw/agents/promptsmith/agent",
+        "model": "claude-sonnet-4-6",
+        "tools": {
+          "allow": ["read", "write", "glob", "grep"],
+          "deny": ["exec"]
+        }
+      },
+      {
+        "id": "cinematographer",
+        "name": "Cinematographer",
+        "description": "Camera, lighting, and VFX specialist. Designs shot framing, movements, and visual effects.",
+        "workspace": "~/.openclaw/workspace-seedance/cinematographer",
+        "agentDir": "~/.openclaw/agents/cinematographer/agent",
+        "model": "claude-sonnet-4-6",
+        "tools": {
+          "allow": ["read", "glob", "grep"],
+          "deny": ["write", "exec"]
+        }
+      },
+      {
+        "id": "casting",
+        "name": "Casting",
+        "description": "Character design, style direction, and motion choreography. Manages @Tag identity.",
+        "workspace": "~/.openclaw/workspace-seedance/casting",
+        "agentDir": "~/.openclaw/agents/casting/agent",
+        "model": "claude-sonnet-4-6",
+        "tools": {
+          "allow": ["read", "glob", "grep"],
+          "deny": ["write", "exec"]
+        }
+      },
+      {
+        "id": "mistake",
+        "name": "Mistake",
+        "description": "QA guardian & asset librarian. Enforces L11 Conservation Law, copyright compliance, manages assets gallery.",
+        "workspace": "~/.openclaw/workspace-seedance/mistake",
+        "agentDir": "~/.openclaw/agents/mistake/agent",
+        "model": "claude-sonnet-4-6",
+        "tools": {
+          "allow": ["read", "write", "glob", "grep", "exec"],
+          "deny": []
+        }
+      },
+      {
+        "id": "sound-designer",
+        "name": "Sound Designer",
+        "description": "Audio design specialist. Handles music, SFX, lip-sync, and audio constraint validation.",
+        "workspace": "~/.openclaw/workspace-seedance/sound-designer",
+        "agentDir": "~/.openclaw/agents/sound-designer/agent",
+        "model": "claude-sonnet-4-6",
+        "tools": {
+          "allow": ["read", "glob", "grep"],
+          "deny": ["write", "exec"]
+        }
+      },
+      {
+        "id": "producer",
+        "name": "Producer",
+        "description": "Execution & pipeline agent. Submits jobs to Seedance API, manages rendering queue.",
+        "workspace": "~/.openclaw/workspace-seedance/producer",
+        "agentDir": "~/.openclaw/agents/producer/agent",
+        "model": "claude-sonnet-4-6",
+        "tools": {
+          "allow": ["read", "write", "exec", "glob", "grep"],
+          "deny": []
+        }
+      }
+    ]
+  },
+
+  "channels": {
+    "telegram": {
+      "botToken": "${TELEGRAM_BOT_TOKEN}",
+      "replyToMode": "all",
+      "streaming": "partial",
+      "mediaMaxMb": 100,
+      "historyLimit": 50,
+
+      "groups": {
+        "${TELEGRAM_GROUP_ID}": {
+          "groupPolicy": "open",
+          "requireMention": false,
+
+          "topics": {
+            "${TELEGRAM_TOPIC_DIRECTOR}": {
+              "agentId": "director",
+              "systemPrompt": "You are the Director — creative lead of the Seedance 2.0 filmmaking team."
+            },
+            "${TELEGRAM_TOPIC_PROMPTSMITH}": {
+              "agentId": "promptsmith",
+              "systemPrompt": "You are the Promptsmith — prompt engineering specialist."
+            },
+            "${TELEGRAM_TOPIC_CINEMATOGRAPHER}": {
+              "agentId": "cinematographer",
+              "systemPrompt": "You are the Cinematographer — camera, lighting, and VFX specialist."
+            },
+            "${TELEGRAM_TOPIC_CASTING}": {
+              "agentId": "casting",
+              "systemPrompt": "You are the Casting Director — character design, style, and motion specialist."
+            },
+            "${TELEGRAM_TOPIC_MISTAKE}": {
+              "agentId": "mistake",
+              "systemPrompt": "You are the Mistake Agent — QA guardian and assets gallery manager."
+            },
+            "${TELEGRAM_TOPIC_SOUND}": {
+              "agentId": "sound-designer",
+              "systemPrompt": "You are the Sound Designer — audio, lip-sync, and SFX specialist."
+            },
+            "${TELEGRAM_TOPIC_PRODUCER}": {
+              "agentId": "producer",
+              "systemPrompt": "You are the Producer — API execution and pipeline manager."
+            }
+          }
+        }
+      },
+
+      "execApprovals": {
+        "enabled": true,
+        "target": "channel"
+      }
+    }
+  },
+
+  "memory": {
+    "enabled": true,
+    "dailyLogs": true,
+    "logDir": "memory",
+    "longTermFile": "MEMORY.md",
+    "searchEnabled": true,
+    "preCompactionFlush": true
+  },
+
+  "bindings": [
+    {
+      "description": "Fallback: DMs and unthreaded messages go to Director",
+      "agentId": "director",
+      "match": {
+        "channel": "telegram"
+      }
+    }
+  ],
+
+  "env": {
+    "MUAPI_API_KEY": "${MUAPI_API_KEY}",
+    "TELEGRAM_BOT_TOKEN": "${TELEGRAM_BOT_TOKEN}",
+    "TELEGRAM_GROUP_ID": "${TELEGRAM_GROUP_ID}"
+  }
+}
